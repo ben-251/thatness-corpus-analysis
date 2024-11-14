@@ -11,24 +11,28 @@ Specifically, I want to find out whether the "complexity" of the subject of the 
 For now I'm over-reducing the problem, dividing all noun phrases into two groups:
 
 ## 1. Simple noun phrase subjects
-I will call these "small" subjects to avoid using the words simple and complex for everything
-
 Pronouns are the easiest to identify, so I will count any subject pronouns as complete subjects.
 "I think that [I, you, he, she, we, they] like(s) soup"  
 
 I may also add common subject names within the document (so if i was analysing _Harry Potter_ I might automatically add "Harry" and "Harry Potter" to my list)
 
-## 2. "confirmed" big subjects
+## 2. "Complex" big subjects
 "I think that a ... "    
 "I think that the ... "  
 Of course these could just be "a dog" or "the world" but I'm making this easy to work with.
 
-## 3. Everything else
+## 3. Everything else (unknown)
 - "I think that _my dog_ likes soup" ("my dog" is lengthy for my purposes)
 - "I think that _Gwendolyn_ likes soup (unwhitelisted first name)
 - "I think that _the person who hit me yesterday_ likes soup" 
 
-In the future, rather than just having complexity be binary, I can measure the number of words in the subject. The reason this is too complicated for now is that I'd need to make syntax trees to be sure when the noun phrases start
+## 4. Invalid
+- "I think so."
+- "I think of france in the winter" 
+- "I think about this day"
+- "I think [conj]"
+
+In the future, rather than just having complexity be so discrete, I can measure the number of words in the subject. This initially seemed complicated, but I can just count the number of words after the verb (or the verb that, but the "that" is trimmed anyway) and treat that all as the nounphrase. this assumes the sentence does not have many clauses chained (i think that soup is hot and you think it is too.) but that's still far better than not considering this at all. I could then have a value called "thatness" that takes in to account size AND type. also allows me to immediately discount any "nounphrases" that are 1 word in length (i think that too; i think green. i think french) 
 
 # What verb to use?
 There are tons of candidates, but I think I want to select ones that are very commonly used, and rarely act on simple objects

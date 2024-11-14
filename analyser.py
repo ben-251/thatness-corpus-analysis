@@ -2,6 +2,13 @@ from typing import List
 from importer import DataHandler
 from enum import Enum, auto
 
+conjunctions = [
+    "and", "but", "or", "nor", "for", "so", "yet", "although", "because", "since",
+    "if", "unless", "until", "while", "whereas", "as",
+    "before", "after", "when", "whenever", "where", "wherever"
+]
+
+
 class subjectType(Enum):
 	SIMPLE = [
 		"i", "you", "we", "he", "she", "they" # I think YOU ate soup	
@@ -9,7 +16,7 @@ class subjectType(Enum):
 	COMPLEX = [  
 		"a", "the", "an" # (I) think ((AN excellent example) is ('(I) think ((A great example) is ("(i) think ((THE best example) is (this sentence))"))'))
 	]
-	INVALID = ["so"] 
+	INVALID = ["so", "of", "about"] + conjunctions
 	UNKNOWN = ["DEFAULT"] # will never be called cuz everything is lowercase
 
 
