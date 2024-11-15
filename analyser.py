@@ -97,3 +97,17 @@ class Sentence:
 				pass
 
 			
+class Analyser:
+	def __init__(self) -> None:
+		pass
+
+	def analysse_next_line(self, verb_list:List[str]):
+		# lazy function to get the next sentence with a "think", and then get the thatness and complexity scores
+		for line in data_handler.lazy_search(verb_list):
+			yield # obviously finish this
+
+	def analyse_all(self, verb_list:List[str]):
+		results = []
+		for result in self.analysse_next_line(verb_list):
+			results.append(result) # obviously atm this undermines the whole point of yielding, but with yield, now i can easily change when we stop going
+		return results
