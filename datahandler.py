@@ -19,13 +19,16 @@ class DataHandler:
 
 	def lazy_search(self, queries:List[str]):
 		for sentence in self.lazy_load():
-			word_list =  Sentence(sentence).sentence 
+			word_list =  Sentence(sentence, verb_forms=queries).sentence 
 			if any(query in word_list for query in queries):
 				yield sentence
 
 
-	def write_complexities(self, write_path:str, that_complexity_avg, not_that_complexity_avg):
-		with open(write_path, "w") as f:
+	def write_complexities(self, write_path:str, that_complexity_avg, not_that_complexity_avg, word_root:str):
+		with open(write_path, "a") as f:
 			f.write(
-				f"with: {that_complexity_avg}\nwithout: {not_that_complexity_avg}"
+				f"\n{word_root}\n\twith: {that_complexity_avg}\n\twithout: {not_that_complexity_avg}"
 			)
+
+	def clear(self, write_path):
+		open(write_path, 'w').close()

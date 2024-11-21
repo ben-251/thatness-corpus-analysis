@@ -25,7 +25,7 @@ class Analyser:
 			thatness: int = 0
 			complexity: int = 0
 
-			current_sentence = Sentence(line)
+			current_sentence = Sentence(line, verb_forms=self.verb_list)
 			try:
 				verb_position = current_sentence.find_verb_position()
 			except:
@@ -50,7 +50,8 @@ class Analyser:
 			data_handler.write_complexities(
 				write_path,
 				that_complexity_avg,
-				not_that_complexity_avg
+				not_that_complexity_avg,
+				word_root = self.verb_list[0]
 			)
 
 
@@ -58,12 +59,7 @@ class Analyser:
 		return next(self.analyse_next_line())
 
 	def interpret_thatness(self, thatness_scores:List[Tuple[int, int]]):
-		for thatness, complexity in thatness_scores:
-			if complexity == subjectType.INVALID.complexity\
-				or complexity == subjectType.UNKNOWN.complexity:
-				continue
-
-			# checking how average complexity is affected by thatness (or could make a logistic regression?)
+		# checking how average complexity is affected by thatness (or could make a logistic regression?)
 		stripped_scores = [
 			(thatness, complexity) for thatness, complexity in thatness_scores if complexity not in (
 				subjectType.INVALID.complexity, subjectType.UNKNOWN.complexity

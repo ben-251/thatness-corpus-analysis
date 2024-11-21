@@ -1,8 +1,9 @@
 from typing import List, Tuple
 from analyser import Analyser
 from datahandler import DataHandler
+import datahandler
 import sentence
-from verb_forms import think_words
+from verb_forms import think_words, know_words, understand_words, guess_words, worry_words
 
 analyser = Analyser()
 
@@ -40,4 +41,18 @@ def main():
 		#thatness_avg, not_thatness_avg = analyser.interpret_thatness(results)
 		#print(f"Average complexity with 'That': {thatness_avg}\nAverage complexity without 'That': {not_thatness_avg}")
 
-main()
+class Main():
+	def __init__(self, base) -> None:
+		self.base = base
+	
+	def run(self):
+		source = "data\\" + self.base
+		write = "write\\" +self.base
+		DataHandler().clear(write)
+		word_lists = (think_words, know_words,
+					understand_words, guess_words, worry_words)
+		for word_list in word_lists: 
+			analyser = Analyser(verb_list=word_list, source_path=source)
+			analyser.analyse_all(write_path=write)
+
+Main("ted2020.txt").run()

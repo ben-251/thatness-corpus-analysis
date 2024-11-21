@@ -213,7 +213,7 @@ class subject_type(testGroup):
 	
 	def test_get_all_data(self):
 		analyser = Analyser(source_path="test_text.txt")
-		result = analyser.analyse_all()
+		result = analyser.get_all_analyses()
 		asserts.assertEquals(
 			result,
 			[
