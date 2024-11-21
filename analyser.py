@@ -1,6 +1,5 @@
 from typing import Generator, List, Optional, Tuple
-from importer import DataHandler
-
+from datahandler import DataHandler
 from verb_forms import think_words
 from sentence import Sentence, subjectType
 
@@ -38,11 +37,22 @@ class Analyser:
 			
 			yield thatness, complexity
 
-	def analyse_all(self) -> List[Tuple[int,int]]:
+	def get_all_analyses(self) -> List[Tuple[int,int]]:
 		results = []
 		for result in self.analyse_next_line():
 			results.append(result) # obviously atm this undermines the whole point of yielding, but with yield, now i can easily change when we stop going
 		return results
+
+	def analyse_all(self, write_path=None):
+		results = self.get_all_analyses()
+		that_complexity_avg, not_that_complexity_avg = self.interpret_thatness(results)
+		if not write_path is None:
+			data_handler.write_complexities(
+				write_path,
+				that_complexity_avg,
+				not_that_complexity_avg
+			)
+
 
 	def analyse_first(self):
 		return next(self.analyse_next_line())

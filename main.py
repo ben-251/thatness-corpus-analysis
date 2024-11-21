@@ -1,6 +1,6 @@
 from typing import List, Tuple
 from analyser import Analyser
-from importer import DataHandler
+from datahandler import DataHandler
 import sentence
 from verb_forms import think_words
 
@@ -29,9 +29,15 @@ def second_test():
 # second_test()
 
 def main():
-	analyser = Analyser()
-	results:List[Tuple[int, int]] = analyser.analyse_all()
-	thatness_avg, not_thatness_avg = analyser.interpret_thatness(results)
-	print(f"Average complexity with 'That': {thatness_avg}\nAverage complexity without 'That': {not_thatness_avg}")
+	# SOURCE = "data\\ted2020.txt"
+	bases = ["en.txt", "ted2020.txt"]
+	for base in bases:
+		source = "data\\" + base
+		write = "write\\" + base
+		analyser = Analyser(source_path=source)
+		analyser.analyse_all(write_path=write)
+		#results:List[Tuple[int, int]] = analyser.analyse_all(write_path = "results\\enResults.txt")
+		#thatness_avg, not_thatness_avg = analyser.interpret_thatness(results)
+		#print(f"Average complexity with 'That': {thatness_avg}\nAverage complexity without 'That': {not_thatness_avg}")
 
 main()

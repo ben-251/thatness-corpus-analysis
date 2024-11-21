@@ -23,14 +23,18 @@ be_pronouns = [word + "'s" for word in he_she] + [word + "'re" for word in other
 
 be_verbs = ["is","was"]
 
+articles = [ "a", "the", "an"]
+demonstratives = ["this", "those", "these"]
+posessives = ["my", "your", "his", "her", "its", "our", "their"]
+quantifiers = ["some", "any", "no", "many", "few", "much", "little", "several", "all", "both", "each", "every", "either", "neither"]
+determiners = articles + demonstratives + posessives
+
 class subjectType(Enum):
 	SIMPLE = (
 		simple_pronouns + future_pronouns + past_pronouns + be_pronouns,
 		1
 	)
-	COMPLEX = ([  
-		"a", "the", "an" # (I) think ((AN excellent example) is ('(I) think ((A great example) is ("(i) think ((THE best example) is (this sentence))"))'))
-	], 2)
+	COMPLEX = (determiners, 2)
 	INVALID = (["so", "of", "about"] + conjunctions + be_verbs, # sentences that aren't useful for this analysis
 		-1)
 	UNKNOWN = (["DEFAULT"], # also not useful, but less sure
@@ -70,6 +74,9 @@ class Sentence:
 		]
 		self.contains_that = False 
 		self.raw_text = raw_text
+		if raw_text == "":
+			self.sentence = [""] 
+			return
 		self.sentence = self.tidy(raw_text)
 		self.clear_delimiters()
 		self.remove_that()

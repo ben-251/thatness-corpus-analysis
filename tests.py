@@ -1,7 +1,7 @@
 from bentests import asserts, testGroup, test_all
 from analyser import Analyser, Sentence, subjectType
 import analyser
-from importer import DataHandler
+from datahandler import DataHandler
 from verb_forms import think_words
 
 class Main(testGroup):
