@@ -1,4 +1,5 @@
 from typing import List
+from sentence import Sentence
 
 class DataHandler:
 	def __init__(self, file_name=None) -> None:
@@ -8,11 +9,16 @@ class DataHandler:
 
 	
 	def lazy_load(self):
-		with open(self.file_name, 'r') as file:
-			for sentence in file: # "each line <-> sentence"
+		with open(self.file_name, 'r', encoding='utf-8') as f:
+			for sentence in f: # "each line <-> sentence"
+				#TODO: fix error where i think the quotation mark or something is not getting imported. maybe strip all punctuation manually
+				# it says UnicodeDecodeError: 'charmap' codec can't decode byte 0x9d in position 7977: character maps to <undefined>
+				# might also just be the newline?
+				
 				yield sentence.strip().lower()
 
 	def lazy_search(self, queries:List[str]):
 		for sentence in self.lazy_load():
-			if any(query in sentence for query in queries):
+			word_list =  Sentence(sentence).sentence 
+			if any(query in word_list for query in queries):
 				yield sentence

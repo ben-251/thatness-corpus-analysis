@@ -1,7 +1,8 @@
 from bentests import asserts, testGroup, test_all
 from analyser import Analyser, Sentence, subjectType
+import analyser
 from importer import DataHandler
-from think_words import think_words
+from verb_forms import think_words
 
 class Main(testGroup):
 	def test_raw_text(self):
@@ -16,9 +17,14 @@ class Main(testGroup):
 			sentence.sentence, ["i", "think", "they", "know", "where", "greece", "is", "not"]
 		)
 
+	def test_strip_delimiters(self):
+		sentence = Sentence("I think, they. know. where Greece is NOT.")
+		asserts.assertEquals(
+			sentence.sentence, ["i", "think", "they", "know", "where", "greece", "is", "not"]
+		)		
+
 	def test_remove_that(self):
 		sentence = Sentence("I think that they know the monkey.")
-		sentence.remove_that()
 		asserts.assertEquals(
 			sentence.sentence,
 			["i","think","they","know","the","monkey"]
@@ -26,29 +32,86 @@ class Main(testGroup):
 
 	def test_find_think_simple(self):
 		analyser = Sentence("i think they know the monkey.")
-		positions = analyser.find_verb_positions()
+		position = analyser.find_verb_position()
 		asserts.assertEquals(
-			positions,
-			[1]
+			position,
+			1
 		)
 
 	def testFindThinkHarder(self):
 		analyser = Sentence("the small-winged puffin sometimes thinks gold is grass.")
-		positions = analyser.find_verb_positions()
+		position = analyser.find_verb_position()
 		asserts.assertEquals(
-			positions,
-			[4]
+			position,
+			4
 		)
 
 
 
 	def test_find_think_harder_that(self):
-		analyser = Sentence("the small-winged puffin sometimes thinks that gold is grass.")
-		positions = analyser.find_verb_positions()
+		analyser = Sentence("the small-winged puffin sometimes thinks that dogs think of grass.")
+		position = analyser.find_verb_position()
 		asserts.assertEquals(
-			positions,
-			[4]
+			position,
+			4
 		)
+
+	def test_think_comes_first(self):
+		analyser = Sentence("think about this word first")
+		position = analyser.find_verb_position()
+		asserts.assertEquals(
+			position,
+			0
+		)
+
+	def test_final_analysis(self):
+		analyser = Analyser()
+		result = analyser.interpret_thatness([
+			(1, 1),
+			(0, 1),
+			(1, 1),
+			(1, 1),
+			(1, 2),
+			(1, 1),
+			(0, 2)
+		])
+
+		asserts.assertEquals(
+			result,
+			(1.2, 1.5)
+		)
+
+	def test_final_analysis_strip(self):
+		analyser = Analyser()
+		result = analyser.interpret_thatness([
+			(1, 1),
+			(0, 1),
+			(1, 1),
+			(1, 1),
+			(1, -1),
+			(1, -1),
+			(1, -1),
+			(1, -1),
+			(0, 0),
+			(-1, 0),
+			(1, 2),
+			(1, 1),
+			(0, 2)
+		])
+
+		asserts.assertEquals(
+			result,
+			(1.2, 1.5)
+		)
+	
+class subject_type(testGroup):
+	def test_think_comes_first(self):
+		analyser = Sentence("think about the order of your words")
+		type_ = analyser.get_subject_type(0)
+		asserts.assertEquals(
+			type_,
+			subjectType.INVALID
+		)		
 
 	def test_subject_type_simple(self):
 		analyser = Sentence("I think i know the monkey.")
@@ -99,7 +162,7 @@ class Main(testGroup):
 		type_ = analyser.get_subject_type(1)
 		asserts.assertEquals(
 			type_,
-			subjectType.SIMPLE
+			subjectType.INVALID
 		)
 
 	def test_subject_type_invalid(self):
@@ -110,11 +173,63 @@ class Main(testGroup):
 			subjectType.INVALID
 		)
 
+	def test_analyse_first_line(self):
+		# sentence = Sentence("I thought that might be right.")
+		analyser = Analyser(source_path="test_text.txt")
+		thatness, complexity = analyser.analyse_first()
+		asserts.assertEquals(
+			[thatness, complexity],
+			[0,1]
+		)
+
+	def test_analyse_first_line_no_verb(self):
+		# sentence = Sentence("I thought that might be right.")
+		analyser = Analyser(source_path="test_text_no_verb.txt")
+		thatness, complexity = analyser.analyse_first()
+		asserts.assertEquals(
+			[thatness, complexity],
+			[0,-1] # goes to first sentence with the verb
+		)
+
+	def test_get_complexity_simple(self):
+		current_sentence = Sentence("I think he's asleep")
+		subject_type = current_sentence.get_subject_type(1)
+			
+		complexity = subject_type.get_complexity()
+		asserts.assertEquals(
+			complexity,
+			1
+		)
+
+	def test_get_complexity_complex(self):
+		current_sentence = Sentence("I think that but is asleep")
+		subject_type = current_sentence.get_subject_type(1)
+			
+		complexity = subject_type.get_complexity()
+		asserts.assertEquals(
+			complexity,
+			-1
+		)
+	
+	def test_get_all_data(self):
+		analyser = Analyser(source_path="test_text.txt")
+		result = analyser.analyse_all()
+		asserts.assertEquals(
+			result,
+			[
+				(0,1),
+				(0,-1),
+				(0,2),
+				(1,-1),
+				(0,-1)
+			]
+		)
+	
+
 
 class enum_group(testGroup):
 	def test_enum_subject_type(self):
 		asserts.assertEquals(subjectType.get_subject_type("i"), subjectType.SIMPLE)
-
 
 class data(testGroup):
 	def testLoad(self):
@@ -154,5 +269,6 @@ class data(testGroup):
 test_all(
 	Main,
 	enum_group,
+	subject_type,
 	data
 )

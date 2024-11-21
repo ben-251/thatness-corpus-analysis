@@ -1,4 +1,4 @@
-# Goal
+# Introduction
 I'm going to be analysing complex sentences, specifically ones with noun clauses.
 
 I'll analyse a large sample of text, to see when "that" is included between the main clause and noun clause, for example:
@@ -6,6 +6,8 @@ I'll analyse a large sample of text, to see when "that" is included between the 
 > I think (that) bananas are purple.
 
 Specifically, I want to find out whether the "complexity" of the subject of the noun clause affects the probability of "that" occuring. 
+
+_Note: this peoject requires the bentests module available [here.](https://github.com/ben-251/ben-tests)_
 
 # Defining complexity
 For now I'm over-reducing the problem, dividing all noun phrases into two groups:

@@ -1,113 +1,68 @@
-from typing import List
+from typing import Generator, List, Optional, Tuple
 from importer import DataHandler
-from enum import Enum, auto
 
-conjunctions = [
-    "and", "but", "or", "nor", "for", "so", "yet", "although", "because", "since",
-    "if", "unless", "until", "while", "whereas", "as",
-    "before", "after", "when", "whenever", "where", "wherever"
-]
+from verb_forms import think_words
+from sentence import Sentence, subjectType
+
+TEST_PATH = "test_text.txt"
 
 
-class subjectType(Enum):
-	SIMPLE = [
-		"i", "you", "we", "he", "she", "they" # I think YOU ate soup	
-	]
-	COMPLEX = [  
-		"a", "the", "an" # (I) think ((AN excellent example) is ('(I) think ((A great example) is ("(i) think ((THE best example) is (this sentence))"))'))
-	]
-	INVALID = ["so", "of", "about"] + conjunctions
-	UNKNOWN = ["DEFAULT"] # will never be called cuz everything is lowercase
 
-
-	@classmethod
-	def get_subject_type(cls, word: str):
-		for subjectType in cls:
-			if word in subjectType.value:
-				return subjectType
-		return cls.UNKNOWN
 
 data_handler = DataHandler()
-
-class Sentence:
-	def __init__(self, raw_text:str, verb_forms=None) -> None:
-		'''
-		Remove "that" and store the thatness
-
-		'I think that this is right'
-		first whitelist for subjects in subject phrase
-		first black list for words immediately following verb
-		second whitelist for valid subjects in noun phrase 
-		
-		'''
-		self.verb_forms = set(("think", "thought", "thinks")) if verb_forms is None else verb_forms
-		self.SUBJECT_PHRASE_WHITELIST = [
-			"i", "you", "we", "he", "she", "they",  # SHE thinks he ate soup
-			"it"
-		]
-		self.contains_that = False 
-		self.raw_text = raw_text
-		self.sentence = self.tidy(raw_text)
-		self.remove_that()
-
-	def tidy(self, raw_sentence:str) -> List[str]:
-		sentence = raw_sentence.lower().split()
-		sentence[-1] = sentence[-1][:-1] if sentence[-1][-1] == "." else sentence[-1]
-		return sentence
-
-	def remove_that(self):
-		verb_positions = self.find_verb_positions()
-		for verb_index in verb_positions:
-			next_word = self.sentence[verb_index+1]
-			if next_word == "that":
-				self.contains_that = True # remember that this sentence had a that (for analysis later)
-				self.sentence.pop(verb_index+1)
-
-
-
-	def find_verb_positions(self) -> List[int]:
-		'''
-
-		'''
-		# Sentence is assumed to be lowercase
-		positions = []
-		for i in range(1, len(self.sentence)): # can safely start on 1 because verb should have a subject first
-			# Find all occurences of the verb not necessarily after a noun. 
-			word = self.sentence[i]
-			prev_word = self.sentence[i - 1]
-			next_word = self.sentence[i + 1] if i < len(self.sentence) - 1 else None 
-
-			if not word in self.verb_forms:
-				continue
-			positions.append(i)
-		return positions
-
-	def get_subject_type(self, verb_position):
-		next_word = self.sentence[verb_position+1]
-		# verb = sentence[verb_position]
-
-		subject_type = subjectType.get_subject_type(next_word)
-		return subject_type
-
-		
-
-	def check_all(self):
-		for verb_position in self.find_verb_positions():
-			if self.get_subject_type(verb_position) is subjectType.COMPLEX:
-				pass
-
-			
 class Analyser:
-	def __init__(self) -> None:
-		pass
+	def __init__(self, verb_list=None, source_path:Optional[str]=None) -> None:
+		verb_list = think_words if verb_list is None else verb_list 
+		self.source_path =  source_path # None is fine
+		self.verb_list:List[str] = verb_list
 
-	def analysse_next_line(self, verb_list:List[str]):
+	def analyse_next_line(self) -> Generator[Tuple[int, int], None, None]:
 		# lazy function to get the next sentence with a "think", and then get the thatness and complexity scores
-		for line in data_handler.lazy_search(verb_list):
-			yield # obviously finish this
+		'''
+		Returns None if the verb is not present
+		'''
+		quick_data_handler = DataHandler(self.source_path)
+		for line in quick_data_handler.lazy_search(self.verb_list):
+			thatness: int = 0
+			complexity: int = 0
 
-	def analyse_all(self, verb_list:List[str]):
+			current_sentence = Sentence(line)
+			try:
+				verb_position = current_sentence.find_verb_position()
+			except:
+				return 
+			subject_type = current_sentence.get_subject_type(verb_position)
+			
+			complexity = subject_type.get_complexity()
+			thatness = int(current_sentence.contains_that)
+			
+			yield thatness, complexity
+
+	def analyse_all(self) -> List[Tuple[int,int]]:
 		results = []
-		for result in self.analysse_next_line(verb_list):
+		for result in self.analyse_next_line():
 			results.append(result) # obviously atm this undermines the whole point of yielding, but with yield, now i can easily change when we stop going
 		return results
+
+	def analyse_first(self):
+		return next(self.analyse_next_line())
+
+	def interpret_thatness(self, thatness_scores:List[Tuple[int, int]]):
+		for thatness, complexity in thatness_scores:
+			if complexity == subjectType.INVALID.complexity\
+				or complexity == subjectType.UNKNOWN.complexity:
+				continue
+
+			# checking how average complexity is affected by thatness (or could make a logistic regression?)
+		stripped_scores = [
+			(thatness, complexity) for thatness, complexity in thatness_scores if complexity not in (
+				subjectType.INVALID.complexity, subjectType.UNKNOWN.complexity
+			)
+		]
+		containing_that = [complexity for thatness, complexity in stripped_scores if thatness]
+		not_containing_that = [complexity for thatness, complexity in stripped_scores if not thatness]
+
+		that_avg = sum(containing_that) / len(containing_that) if containing_that else 0
+		not_that_avg = sum(not_containing_that) / len(not_containing_that) if not_containing_that else 0
+
+		return that_avg, not_that_avg
