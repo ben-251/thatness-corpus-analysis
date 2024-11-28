@@ -32,13 +32,13 @@ determiners = articles + demonstratives + posessives
 class subjectType(Enum):
 	SIMPLE = (
 		simple_pronouns + future_pronouns + past_pronouns + be_pronouns,
-		1
+		0
 	)
-	COMPLEX = (determiners, 2)
+	COMPLEX = (determiners, 1)
 	INVALID = (["so", "of", "about"] + conjunctions + be_verbs, # sentences that aren't useful for this analysis
 		-1)
 	UNKNOWN = (["DEFAULT"], # also not useful, but less sure
-		0)
+		-2)
 
 	def __init__(self, words, complexity):
 		self.words = words

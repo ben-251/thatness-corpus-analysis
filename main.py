@@ -55,4 +55,5 @@ class Main():
 			analyser = Analyser(verb_list=word_list, source_path=source)
 			analyser.analyse_all(write_path=write)
 
+# Main("ted2020.txt").run()
 Main("ted2020.txt").run()
